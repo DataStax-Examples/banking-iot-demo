@@ -63,7 +63,7 @@ and default_time_to_live = 2592000;
 ```
 This default_time_to_live of 2592000 seconds ensures that data will be removed from the table 90 days after its been inserted.
 
-##Sample queries
+## Sample queries
 
 For straight-forward queries which only use the credit card no and transaction times, we will use cql to access the data.
 
@@ -87,7 +87,7 @@ select * from transactions where cc_no = '1234123412341234' and year = 2020 and 
 select * from transactions where cc_no = '1234123412341234' and year = 2020 and transaction_time > '2019-12-31' and transaction_time < '2020-01-27';
 ```
 
-##Searching Data in DSE
+## Searching Data in DSE
 
 The above queries allow us to query on the partition key and some or all of the clustering columns in the table definition. To query more generically on the other columns we will use DSE Search to index and search our data. To do this we use the dsetool to create a solr core. We will also use the dsetool to create the core based on our table for testing purposes. In a production environment we would only index the columns that we would want to query on.
 
