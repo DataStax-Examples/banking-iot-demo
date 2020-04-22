@@ -83,3 +83,34 @@ select * from latest_transactions where solr_query = '{"q":"cc_no:12341234123412
 Gell all the transaction for credit card '1' that have a tag of Work and are within the last month
 ```
 select * from latest_transactions where solr_query = '{"q":"cc_no:1234123412341234", "fq":"tags:Work", "fq":"transaction_time:[NOW-30DAY TO *]"}' limit  1000;
+
+* **Run the webservice**
+
+To use the webservice, start the web server using
+```
+mvn jetty:run
+```
+Open a browser and use a url like
+```
+http://{servername}:8080/datastax-banking-iot/rest/gettransactions/{creditcardno}/{from}/{to}
+```
+Note : the from and to are dates in the format yyyyMMdd hh:mm:ss - eg
+```
+http://localhost:8080/datastax-banking-iot/rest/gettransactions/1234123412341234/20200101/20200302/
+```
+* **Run requests**
+
+To run the requests run the following
+
+	mvn clean compile exec:java -Dexec.mainClass="com.datastax.banking.RunRequests" -DcontactPoints=localhost
+
+To change the no of requests and no of credit cards add the following
+
+	-DnoOfRequests=100000  -DnoOfCreditCards=1000000
+
+ * **Remove the schema**
+
+ To remove the tables and the schema, run the following.
+
+    mvn clean compile exec:java -Dexec.mainClass="com.datastax.demo.SchemaTeardown"
+    	
