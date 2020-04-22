@@ -83,6 +83,7 @@ select * from latest_transactions where solr_query = '{"q":"cc_no:12341234123412
 Gell all the transaction for credit card '1' that have a tag of Work and are within the last month
 ```
 select * from latest_transactions where solr_query = '{"q":"cc_no:1234123412341234", "fq":"tags:Work", "fq":"transaction_time:[NOW-30DAY TO *]"}' limit  1000;
+```
 
 * **Run the webservice**
 
@@ -113,4 +114,3 @@ To change the no of requests and no of credit cards add the following
  To remove the tables and the schema, run the following.
 
     mvn clean compile exec:java -Dexec.mainClass="com.datastax.demo.SchemaTeardown"
-    	
