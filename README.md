@@ -1,45 +1,85 @@
-# datastax-example-template
-A short few sentences describing what is the purpose of the example and what the user will learn
+# Banking-IoT Demo
 
-e.g.
-This application shows how to use configure your NodeJs application to connect to DDAC/Cassandra/DSE or an Apollo database at runtime.
+A bank wants to help locate and tag all their expenses/transactions in their bank account to help them categorize their spending. The users will be able to tag any expense/transaction to allow for efficient retrieval and reporting. There will be 10 millions customers with on average 500 transactions a year. Some business customers may have up to 10,000 transactions a year. The client wants the tagged items to show up in searches in less than a second to give users a seamless experience between devices.
 
-Contributors: A listing of contributors to this repository linked to their github profile
+This requires DataStax Enterprise running in Search mode.
+
+Contributor(s): [Patrick Callaghan](https://github.com/PatrickCallaghan)
 
 ## Objectives
-A list of the top objectives that are being demonstrated by this sample
 
-e.g.
-* To demonstrate how to specify at runtime between a standard (DSE/DDAC/C*) client configuration and an Apollo configuration for the same application.
-  
+* To demonstrate how Cassandra and Datastax can be used to solve IoT data management issues.
+
 ## Project Layout
-A list of key files within this repo and a short 1-2 sentence description of why they are important to the project
 
-e.g.
-* app.js - The main application file which contains all the logic to switch between the configurations
+* [SchemaSetup.java](/src/main/java/com/datastax/demo/SchemaSetup.java) - Sets up the banking IoT schema with transaction tables.
+* [Main.java](/src/main/java/com/datastax/banking/Main.java) - Creates transactions.
 
 ## How this Works
-A description of how this sample works and how it demonstrates the objectives outlined above
+After setting up the transaction schema, the transaction data is inserted and a Solr core is created. The transactions can then be searched on the basis of tags.
 
 ## Setup and Running
 
 ### Prerequisites
-The prerequisites required for this application to run
 
-e.g.
-* NodeJs version 8
-* A DSE 6.7 Cluster
-* Schema added to the cluster
+* Java 8
+* A Cassandra, DSE cluster or Astra database
+* Maven to compile and run code
 
 ### Running
-The steps and configuration needed to run and build this application
+* **Setup the schema**
 
-e.g.
-To run this application use the following command:
+To create the schema, run the following
 
-`node app.js`
+	mvn clean compile exec:java -Dexec.mainClass="com.datastax.demo.SchemaSetup" -DcontactPoints=localhost
 
-This will produce the following output:
+* **Insert transactions**  
 
-`Connected to cluster with 3 host(s) ["XX.XX.XX.136:9042","XX.XX.XX.137:9042","XX.XX.XX.138:9042"]`
+To create some transactions, run the following
 
+	mvn clean compile exec:java -Dexec.mainClass="com.datastax.banking.Main"  -DcontactPoints=localhost
+
+You can use the following parameters to change the default no of transactions and credit cards
+
+	-DnoOfTransactions=10000000 -DnoOfCreditCards=1000000
+
+* **Create the Solr core**
+
+To create the solr core, run
+
+  	bin/dsetool create_core datastax_banking_iot.latest_transactions generateResources=true reindex=true coreOptions=rt.yaml
+
+* **Sample queries**
+
+For the latest transaction table we can run the following types of queries
+```
+use datastax_banking_iot;
+
+select * from latest_transactions where cc_no = '1234123412341234';
+
+select * from latest_transactions where cc_no = '1234123412341234' and transaction_time > '2020-01-01';
+
+select * from latest_transactions where cc_no = '1234123412341234' and transaction_time > '2020-01-01' and transaction_time < '2020-01-31';
+```
+For the (historic) transaction table we need to add the year into our queries.
+
+```
+select * from transactions where cc_no = '1234123412341234' and year = 2020;
+
+select * from transactions where cc_no = '1234123412341234' and year = 2020 and transaction_time > '2019-12-31';
+
+select * from transactions where cc_no = '1234123412341234' and year = 2020 and transaction_time > '2019-12-31' and transaction_time < '2020-01-27';
+```
+* **Using the `solr_query`**
+
+Get all the latest transactions from PC World in London (This is accross all credit cards and users)
+```
+select * from latest_transactions where solr_query = 'merchant:PC+World location:London' limit  100;
+```
+Get all the latest transactions for credit card '1' that have a tag of Work.
+```
+select * from latest_transactions where solr_query = '{"q":"cc_no:1234123412341234", "fq":"tags:Work"}' limit  1000;
+```
+Gell all the transaction for credit card '1' that have a tag of Work and are within the last month
+```
+select * from latest_transactions where solr_query = '{"q":"cc_no:1234123412341234", "fq":"tags:Work", "fq":"transaction_time:[NOW-30DAY TO *]"}' limit  1000;
