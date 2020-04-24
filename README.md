@@ -47,7 +47,7 @@ You can use the following parameters to change the default no of transactions an
 
 To create the solr core, run
 
-  	dsetool create_core datastax_banking_iot.latest_transactions generateResources=true reindex=true coreOptions=rt.yaml
+  	bin/dsetool create_core datastax_banking_iot.latest_transactions generateResources=true reindex=true coreOptions=rt.yaml
 
 * **Sample queries**
 
