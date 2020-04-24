@@ -23,7 +23,7 @@ After setting up the transaction schema, the transaction data is inserted and a 
 ### Prerequisites
 
 * Java 8
-* A Cassandra, DSE cluster or Astra database
+* A DSE cluster 
 * Maven to compile and run code
 
 ### Running
